@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { useCart } from "../context/CartContext";
 import { getProductById } from "../data/products";
 
+const FALLBACK_IMG =
+  "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-11_d446c524-4dc6-4543-ae82-d3fdfe7428e2.jpg?v=1751603962";
+
 export default function ProductDetail() {
   const { id } = useParams({ from: "/product/$id" });
   const product = getProductById(id);
@@ -79,6 +82,9 @@ export default function ProductDetail() {
             src={variant.image}
             alt={`${product.name} ${variant.label}`}
             className="w-full h-full object-contain"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = FALLBACK_IMG;
+            }}
           />
         </motion.div>
 

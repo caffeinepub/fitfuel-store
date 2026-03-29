@@ -51,12 +51,24 @@ export interface ProductOrder {
   'price' : bigint,
 }
 export type Rating = bigint;
+export interface UserProfile {
+  'floor' : string,
+  'area' : string,
+  'flat' : string,
+  'name' : string,
+  'addressType' : string,
+  'landmark' : string,
+  'phone' : string,
+}
 export interface _SERVICE {
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
+  'getAllUsers' : ActorMethod<[], Array<UserProfile>>,
   'getOrderById' : ActorMethod<[bigint], [] | [Order]>,
   'getProductById' : ActorMethod<[bigint], Product>,
   'getProductsByCategory' : ActorMethod<[string], Array<Product>>,
+  'getUserByPhone' : ActorMethod<[string], [] | [UserProfile]>,
+  'saveUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitOrder' : ActorMethod<[Order], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;

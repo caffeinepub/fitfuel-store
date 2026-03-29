@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 export interface CartItem {
-  cartKey: string; // unique: productId-variantLabel-sizeLabel
+  cartKey: string;
   productId: string;
   productName: string;
   variant: string;
@@ -22,6 +22,8 @@ interface CartContextType {
   cartSavings: number;
   deliveryCharge: number;
   grandTotal: number;
+  gpsDeliveryCharge: number | null;
+  setGpsDeliveryCharge: (charge: number | null) => void;
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (cartKey: string) => void;
   updateQuantity: (cartKey: string, qty: number) => void;
@@ -32,6 +34,9 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [gpsDeliveryCharge, setGpsDeliveryCharge] = useState<number | null>(
+    null,
+  );
 
   const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
@@ -65,8 +70,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const cartSubtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const cartMrpTotal = items.reduce((sum, i) => sum + i.mrp * i.quantity, 0);
   const cartSavings = cartMrpTotal - cartSubtotal;
-  // Delivery: FREE if 3+ line items, else ₹30
-  const deliveryCharge = items.length >= 3 ? 0 : 30;
+
+  // GPS-based delivery logic:
+  // If gpsDeliveryCharge is set (GPS detected), use it.
+  // Otherwise fall back to: FREE for 3+ line items, else ₹30
+  const deliveryCharge =
+    gpsDeliveryCharge !== null ? gpsDeliveryCharge : items.length >= 3 ? 0 : 30;
   const grandTotal = cartSubtotal + deliveryCharge;
 
   return (
@@ -79,6 +88,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartSavings,
         deliveryCharge,
         grandTotal,
+        gpsDeliveryCharge,
+        setGpsDeliveryCharge,
         addToCart,
         removeFromCart,
         updateQuantity,

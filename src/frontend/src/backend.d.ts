@@ -13,6 +13,15 @@ export interface ProductOrder {
     quantity: bigint;
     price: bigint;
 }
+export interface UserProfile {
+    floor: string;
+    area: string;
+    flat: string;
+    name: string;
+    addressType: string;
+    landmark: string;
+    phone: string;
+}
 export type Rating = bigint;
 export type PaymentMethod = {
     __kind__: "cod";
@@ -58,8 +67,11 @@ export enum OrderStatus {
 export interface backendInterface {
     getAllOrders(): Promise<Array<Order>>;
     getAllProducts(): Promise<Array<Product>>;
+    getAllUsers(): Promise<Array<UserProfile>>;
     getOrderById(orderId: bigint): Promise<Order | null>;
     getProductById(id: bigint): Promise<Product>;
     getProductsByCategory(category: string): Promise<Array<Product>>;
+    getUserByPhone(phone: string): Promise<UserProfile | null>;
+    saveUserProfile(profile: UserProfile): Promise<void>;
     submitOrder(order: Order): Promise<bigint>;
 }

@@ -1,43 +1,51 @@
-# FitFuel Store — Full Rebuild (Version 6)
+# FitFuel Store — Version 9 Upgrade
 
 ## Current State
-Existing FitFuel Store with Pintola products, cart, WhatsApp integration, discount coupons. Being fully rebuilt with new product set, pricing, payment flow, and address/checkout system.
+
+FitFuel Store is a working eCommerce site with:
+- 4 Pintola products (Oats, Muesli, HP Peanut Butter, Performance PB)
+- Cart with delivery logic (₹30 for 1-2 items, free for 3+)
+- Checkout with address form + GPS detect location
+- Payment via UPI or COD
+- Order success page that sends order to WhatsApp
+- Backend stores orders with address, products, payment method
+- Floating WhatsApp button
 
 ## Requested Changes (Diff)
 
 ### Add
-- Complete checkout flow: Cart → Address Form → Payment → Order Success
-- UPI payment with QR code (UPI ID: 9549958286@fam) + manual UPI ID entry
-- COD (Cash on Delivery) payment option
-- Address form with static map placeholder + browser GPS "Detect My Location" + manual entry
-- Address fields: type (Home/Work/Hotel/Other), Flat/House/Building, Floor, Area/Locality, Landmark, Name, Phone
-- Delivery charge logic: ₹30 for 1–2 items in cart; FREE for 3+ items
-- Discount % badges on all product cards and product pages
-- Search bar in navbar
-- WhatsApp order dispatch on order success (number: 9549958286)
-- Slogan: "Fuel Your Strength"
+- **GPS-based delivery logic**: Use browser GPS on checkout page; calculate distance from store (Hasanpura, Jaipur: 26.9124°N, 75.8648°E). Within 5km = always free. Outside 5km = ₹30 for 1-2 items, free for 3+. CartContext needs to accept external deliveryCharge override.
+- **User profile system**: At checkout, save user's Name + Phone + Address to backend. Profile page at `/profile` — user enters phone number to look up their saved profile and past orders.
+- **Rule-based chatbot**: Floating "Need Help?" button. Handles order status, delivery, payment, FAQs with pre-written responses. "Request Callback" sends customer details to WhatsApp 9549956286.
+- **Admin page at `/admin`**: Password protected (Fit@123). Shows all customers + orders. One-click Excel/CSV download. Hidden from navigation.
+- **Backend user storage**: Store UserProfile (name, phone, address). Link orders to phone numbers. Admin can query all users and all orders.
 
 ### Modify
-- Replace ALL existing products with exactly 4 products (with size variants):
-  1. Pintola High Protein Oats — 1kg (MRP ₹620, SP ₹500, 19% off) & 400g (MRP ₹310, SP ₹250, 19% off)
-  2. Pintola High Protein Muesli — 1kg (MRP ₹710, SP ₹600, 15% off) & 400g (MRP ₹325, SP ₹275, 15% off)
-  3. Pintola High Protein Peanut Butter — 1kg (MRP ₹665, SP ₹500, 25% off) & 510g (MRP ₹355, SP ₹300, 15% off)
-  4. Pintola Performance Peanut Butter — 1kg only (MRP ₹575, SP ₹450, 22% off)
-- WhatsApp number updated to 9549958286
-- Cart now shows: per-item price, delivery charges (dynamic), total savings, grand total
+- **All WhatsApp numbers** updated to 9549956286 everywhere (FloatingWhatsApp, OrderSuccess, Footer, CartContext)
+- **CartContext**: Add ability to override deliveryCharge externally (from GPS result)
+- **Checkout page**: After form submission, save user profile to backend via phone number. Also compute GPS distance and update delivery charge.
+- **OrderSuccess**: Use 9549956286 for WhatsApp link
 
 ### Remove
-- Old discount coupon system (SHAH10–SHAH30)
-- All old products not in the new list
-- Old checkout placeholder
+- Nothing removed
 
 ## Implementation Plan
-1. Backend: store orders with product, size, quantity, address, payment method, status
-2. Frontend pages: Home, Products, Product Detail, Cart, Checkout (Address), Payment, Order Success
-3. Product data: hardcoded in frontend with Pintola CDN images, descriptions, discount badges
-4. Cart: React context/state, item count drives delivery fee (₹30 if <3 items, ₹0 if 3+)
-5. Address form: static map SVG placeholder + navigator.geolocation for GPS fill
-6. Payment: two-tab UI — UPI (QR code for 9549958286@fam + UPI ID entry) and COD
-7. Order success: display summary + trigger WhatsApp link to 9549958286 with full order details
-8. Search: filter products by name in real time
-9. Discount badges: show calculated % on every product card
+
+1. **Backend (Motoko)**:
+   - Add `UserProfile` type: `{ name: Text; phone: Text; address: DeliveryAddress }`
+   - Add `saveUserProfile(profile: UserProfile)` — store by phone number
+   - Add `getUserByPhone(phone: Text) : async ?UserProfile`
+   - Add `getOrdersByPhone(phone: Text) : async [Order]` — filter orders by phone
+   - Add `getAllUsers() : async [UserProfile]` — admin export
+   - Modify `submitOrder` to accept optional phone for linking
+   - Order type gets `customerPhone: Text` field
+
+2. **Frontend**:
+   - Update CartContext: accept `gpsDeliveryCharge` state; expose `setGpsDeliveryCharge`
+   - Update Checkout: reverse-geocode GPS coordinates using Nominatim (free, no API key), calculate haversine distance to store, set delivery charge accordingly. Show message: "Free Delivery within 5 KM of our store (Hasanpura, Jaipur)"
+   - After checkout form submit: call `saveUserProfile` backend API
+   - Add `/profile` page: input phone → fetch profile + orders → show dashboard
+   - Add `SupportChatbot` component: floating "Need Help?" button, chat bubble with rule-based answers and "Request Callback" button
+   - Add `/admin` page: password gate (Fit@123), table of all users + orders, CSV export button
+   - Update App.tsx with new routes: /profile, /admin
+   - Update all WhatsApp numbers to 9549956286

@@ -2,17 +2,57 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "@tanstack/react-router";
 import { MapPin, Navigation } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useCart } from "../context/CartContext";
 import { useCheckout } from "../context/CheckoutContext";
+import { useActor } from "../hooks/useActor";
 
 const ADDRESS_TYPES = ["Home", "Work", "Hotel", "Other"];
+const STORE_LAT = 26.9124;
+const STORE_LNG = 75.8648;
+
+function haversine(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { address, setAddress } = useCheckout();
+  const { items, setGpsDeliveryCharge } = useCart();
+  const { actor } = useActor();
+  const [gpsMessage, setGpsMessage] = useState<string | null>(null);
 
   const set = (field: keyof typeof address, value: string) =>
     setAddress({ ...address, [field]: value });
+
+  // Try to pre-fill from localStorage when user finishes typing phone number
+  const handlePhoneBlur = () => {
+    if (!address.phone) return;
+    const saved = localStorage.getItem(`fitfuel_profile_${address.phone}`);
+    if (saved) {
+      try {
+        const profile = JSON.parse(saved);
+        setAddress({ ...address, ...profile, phone: address.phone });
+        toast.success("Welcome back! We've filled in your saved address.");
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -23,6 +63,27 @@ export default function Checkout() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
+        const dist = haversine(STORE_LAT, STORE_LNG, latitude, longitude);
+        const distKm = dist.toFixed(1);
+
+        let charge: number;
+        if (dist <= 5) {
+          charge = 0;
+          setGpsMessage(
+            `\ud83d\udccd Your location is ${distKm} km from our store \u2014 FREE delivery!`,
+          );
+        } else {
+          charge = items.length >= 3 ? 0 : 30;
+          setGpsMessage(
+            `\ud83d\udccd Your location is ${distKm} km from our store \u2014 ${
+              charge === 0
+                ? "FREE delivery (3+ items)"
+                : "\u20b930 delivery charge"
+            }`,
+          );
+        }
+        setGpsDeliveryCharge(charge);
+
         set(
           "area",
           `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
@@ -35,7 +96,7 @@ export default function Checkout() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const required = ["flat", "area", "name", "phone"] as const;
     for (const f of required) {
@@ -44,12 +105,54 @@ export default function Checkout() {
         return;
       }
     }
+
+    const profileData = {
+      flat: address.flat,
+      floor: address.floor,
+      area: address.area,
+      landmark: address.landmark,
+      name: address.name,
+      addressType: address.addressType,
+    };
+    localStorage.setItem(
+      `fitfuel_profile_${address.phone}`,
+      JSON.stringify(profileData),
+    );
+
+    if (actor) {
+      actor
+        .saveUserProfile({
+          name: address.name,
+          phone: address.phone,
+          area: address.area,
+          flat: address.flat,
+          floor: address.floor,
+          addressType: address.addressType,
+          landmark: address.landmark,
+        })
+        .catch(() => {});
+    }
+
     navigate({ to: "/payment" });
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-extrabold mb-8">Delivery Address</h1>
+      <h1 className="text-3xl font-extrabold mb-2">Delivery Address</h1>
+
+      <div className="mb-6 flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-800">
+        <MapPin className="w-4 h-4 flex-shrink-0" />
+        <span>
+          \ud83d\udccd <strong>Free Delivery within 5 KM</strong> of our store
+          (Hasanpura, Jaipur)
+        </span>
+      </div>
+
+      {gpsMessage && (
+        <div className="mb-6 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 font-medium">
+          {gpsMessage}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Map placeholder */}
@@ -147,7 +250,7 @@ export default function Checkout() {
               id="area"
               value={address.area}
               onChange={(e) => set("area", e.target.value)}
-              placeholder="e.g. Koramangala, Bangalore"
+              placeholder="e.g. Hasanpura, Jaipur"
               data-ocid="checkout.area.input"
             />
           </div>
@@ -181,6 +284,7 @@ export default function Checkout() {
                 type="tel"
                 value={address.phone}
                 onChange={(e) => set("phone", e.target.value)}
+                onBlur={handlePhoneBlur}
                 placeholder="10-digit mobile number"
                 data-ocid="checkout.phone.input"
               />
@@ -192,7 +296,7 @@ export default function Checkout() {
             className="w-full bg-[#FF6B00] hover:bg-[#E65C00] text-white font-bold py-4 rounded-xl text-lg transition-colors shadow-orange mt-2"
             data-ocid="checkout.save_continue.submit_button"
           >
-            Save & Continue →
+            Save & Continue \u2192
           </button>
         </form>
       </div>

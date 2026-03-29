@@ -4,6 +4,9 @@ import { motion } from "motion/react";
 import ProductCard from "../components/ProductCard";
 import { products } from "../data/products";
 
+const FALLBACK_IMG =
+  "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-11_d446c524-4dc6-4543-ae82-d3fdfe7428e2.jpg?v=1751603962";
+
 const FEATURES = [
   { icon: <Truck className="w-4 h-4" />, text: "Free delivery on 3+ items" },
   {
@@ -114,6 +117,9 @@ export default function Home() {
                   src={p.variants[0].image}
                   alt={p.name}
                   className="w-32 h-32 object-contain drop-shadow-2xl"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_IMG;
+                  }}
                 />
               </div>
             ))}

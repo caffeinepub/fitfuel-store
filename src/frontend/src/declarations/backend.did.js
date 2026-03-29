@@ -53,13 +53,25 @@ export const Product = IDL.Record({
   'rating' : Rating,
   'price' : Price,
 });
+export const UserProfile = IDL.Record({
+  'floor' : IDL.Text,
+  'area' : IDL.Text,
+  'flat' : IDL.Text,
+  'name' : IDL.Text,
+  'addressType' : IDL.Text,
+  'landmark' : IDL.Text,
+  'phone' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+  'getAllUsers' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
   'getOrderById' : IDL.Func([IDL.Nat], [IDL.Opt(Order)], ['query']),
   'getProductById' : IDL.Func([IDL.Nat], [Product], ['query']),
   'getProductsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Product)], ['query']),
+  'getUserByPhone' : IDL.Func([IDL.Text], [IDL.Opt(UserProfile)], ['query']),
+  'saveUserProfile' : IDL.Func([UserProfile], [], []),
   'submitOrder' : IDL.Func([Order], [IDL.Nat], []),
 });
 
@@ -108,10 +120,20 @@ export const idlFactory = ({ IDL }) => {
     'rating' : Rating,
     'price' : Price,
   });
+  const UserProfile = IDL.Record({
+    'floor' : IDL.Text,
+    'area' : IDL.Text,
+    'flat' : IDL.Text,
+    'name' : IDL.Text,
+    'addressType' : IDL.Text,
+    'landmark' : IDL.Text,
+    'phone' : IDL.Text,
+  });
   
   return IDL.Service({
     'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+    'getAllUsers' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
     'getOrderById' : IDL.Func([IDL.Nat], [IDL.Opt(Order)], ['query']),
     'getProductById' : IDL.Func([IDL.Nat], [Product], ['query']),
     'getProductsByCategory' : IDL.Func(
@@ -119,6 +141,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Product)],
         ['query'],
       ),
+    'getUserByPhone' : IDL.Func([IDL.Text], [IDL.Opt(UserProfile)], ['query']),
+    'saveUserProfile' : IDL.Func([UserProfile], [], []),
     'submitOrder' : IDL.Func([Order], [IDL.Nat], []),
   });
 };

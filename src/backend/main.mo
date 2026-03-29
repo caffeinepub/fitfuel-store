@@ -1,15 +1,43 @@
-import Array "mo:core/Array";
-import Text "mo:core/Text";
-import Nat "mo:core/Nat";
-import Order "mo:core/Order";
-import Iter "mo:core/Iter";
-import Map "mo:core/Map";
-import Migration "migration";
-import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
+import Nat "mo:core/Nat";
+import Iter "mo:core/Iter";
+import Array "mo:core/Array";
+import Map "mo:core/Map";
+import Runtime "mo:core/Runtime";
+import Order "mo:core/Order";
+import Text "mo:core/Text";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Price = Nat; // Store price in paise/cents
+
+  type UserProfile = {
+    name : Text;
+    addressType : Text;
+    flat : Text;
+    floor : Text;
+    area : Text;
+    landmark : Text;
+    phone : Text;
+  };
+
+  let userProfiles = Map.empty<Text, UserProfile>();
+
+  // Save user profile
+  public shared ({ caller }) func saveUserProfile(profile : UserProfile) : async () {
+    userProfiles.add(profile.phone, profile);
+  };
+
+  // Get user profile by phone number
+  public query ({ caller }) func getUserByPhone(phone : Text) : async ?UserProfile {
+    userProfiles.get(phone);
+  };
+
+  // Get all users (admin / export)
+  public query ({ caller }) func getAllUsers() : async [UserProfile] {
+    userProfiles.values().toArray();
+  };
 
   type Rating = Nat; // Rating as 1-5 integer
 

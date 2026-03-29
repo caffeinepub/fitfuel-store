@@ -1,24 +1,21 @@
-import Map "mo:core/Map";
 import Nat "mo:core/Nat";
+import Map "mo:core/Map";
+import Text "mo:core/Text";
 
 module {
-  // Product type
+  type Price = Nat;
+  type Rating = Nat;
+
   type Product = {
     id : Nat;
     name : Text;
-    price : Nat;
+    price : Price;
     description : Text;
     category : Text;
     imageUrl : Text;
-    rating : Nat;
+    rating : Rating;
   };
 
-  // Old actor (original actor type)
-  type OldActor = {
-    products : [Product];
-  };
-
-  // ProductOrder type
   type ProductOrder = {
     name : Text;
     size : Text;
@@ -26,9 +23,8 @@ module {
     price : Nat;
   };
 
-  // DeliveryAddress type
   type DeliveryAddress = {
-    addressType : Text; // home/office
+    addressType : Text;
     flat : Text;
     floor : Text;
     area : Text;
@@ -37,37 +33,56 @@ module {
     phone : Nat;
   };
 
-  // Order type
+  type PaymentMethod = {
+    #upi : Text;
+    #cod;
+  };
+
+  type OrderStatus = {
+    #pending;
+    #confirmed;
+    #delivered;
+  };
+
   type Order = {
     orderId : Nat;
     products : [ProductOrder];
     address : DeliveryAddress;
-    paymentMethod : {
-      #upi : Text;
-      #cod;
-    };
+    paymentMethod : PaymentMethod;
     totalAmount : Nat;
     deliveryCharge : Nat;
-    status : {
-      #pending;
-      #confirmed;
-      #delivered;
-    };
+    status : OrderStatus;
     timestamp : Int;
   };
 
-  // New data structure with orders
-  type NewActor = {
-    products : [Product];
-    orders : Map.Map<Nat, Order>;
+  type OldActor = {
     nextOrderId : Nat;
+    orders : Map.Map<Nat, Order>;
+    products : [Product];
+  };
+
+  type UserProfile = {
+    name : Text;
+    addressType : Text;
+    flat : Text;
+    floor : Text;
+    area : Text;
+    landmark : Text;
+    phone : Text;
+  };
+
+  type NewActor = {
+    nextOrderId : Nat;
+    orders : Map.Map<Nat, Order>;
+    products : [Product];
+    userProfiles : Map.Map<Text, UserProfile>;
   };
 
   public func run(old : OldActor) : NewActor {
     {
-      products = old.products;
-      orders = Map.empty<Nat, Order>();
-      nextOrderId = 1;
+      old with
+      userProfiles = Map.empty<Text, UserProfile>();
     };
   };
 };
+

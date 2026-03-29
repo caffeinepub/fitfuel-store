@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CheckCircle, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OrderStatus } from "../backend.d";
 import { useCart } from "../context/CartContext";
 import { useCheckout } from "../context/CheckoutContext";
@@ -12,87 +12,80 @@ export default function OrderSuccess() {
   const { address, paymentMethod, upiId } = useCheckout();
   const { actor } = useActor();
   const submitted = useRef(false);
-  // Capture snapshot at render so effect only re-runs when actor changes
-  const snapshot = useRef({
-    items,
+
+  const [orderSnapshot] = useState(() => ({
+    items: [...items],
     grandTotal,
     deliveryCharge,
-    address,
+    address: { ...address },
     paymentMethod,
     upiId,
-    clearCart,
-  });
+  }));
 
   useEffect(() => {
-    const {
-      items: its,
-      grandTotal: gt,
-      deliveryCharge: dc,
-      address: addr,
-      paymentMethod: pm,
-      upiId: uid,
-      clearCart: cc,
-    } = snapshot.current;
-    if (!actor || submitted.current || its.length === 0) return;
+    if (!actor || submitted.current || orderSnapshot.items.length === 0) return;
     submitted.current = true;
 
     const order = {
       orderId: 0n,
       status: OrderStatus.pending,
-      products: its.map((item) => ({
+      products: orderSnapshot.items.map((item) => ({
         name: `${item.productName} (${item.variant})`,
         size: item.size,
         quantity: BigInt(item.quantity),
         price: BigInt(item.price),
       })),
       address: {
-        addressType: addr.addressType,
-        flat: addr.flat,
-        floor: addr.floor,
-        area: addr.area,
-        landmark: addr.landmark,
-        name: addr.name,
-        phone: addr.phone ? BigInt(addr.phone) : 0n,
+        addressType: orderSnapshot.address.addressType,
+        flat: orderSnapshot.address.flat,
+        floor: orderSnapshot.address.floor,
+        area: orderSnapshot.address.area,
+        landmark: orderSnapshot.address.landmark,
+        name: orderSnapshot.address.name,
+        phone: orderSnapshot.address.phone
+          ? BigInt(orderSnapshot.address.phone)
+          : 0n,
       },
       paymentMethod:
-        pm === "upi"
-          ? { __kind__: "upi" as const, upi: uid }
+        orderSnapshot.paymentMethod === "upi"
+          ? { __kind__: "upi" as const, upi: orderSnapshot.upiId }
           : { __kind__: "cod" as const, cod: null },
-      totalAmount: BigInt(gt),
-      deliveryCharge: BigInt(dc),
+      totalAmount: BigInt(orderSnapshot.grandTotal),
+      deliveryCharge: BigInt(orderSnapshot.deliveryCharge),
       timestamp: BigInt(Date.now()),
     };
 
     actor.submitOrder(order).catch(() => {});
-    cc();
-  }, [actor]);
+    clearCart();
+  }, [actor, orderSnapshot, clearCart]);
 
   const buildWhatsAppMessage = () => {
+    const snap = orderSnapshot;
     const lines: string[] = ["🛒 *New Order — FitFuel Store*", ""];
     lines.push("*Products:*");
-    for (const item of items) {
+    for (const item of snap.items) {
       lines.push(
         `• ${item.productName} (${item.variant}) — ${item.size} × ${item.quantity} = ₹${item.price * item.quantity}`,
       );
     }
     lines.push("");
     lines.push(
-      `*Delivery Charges:* ₹${deliveryCharge === 0 ? "0 (FREE)" : deliveryCharge}`,
+      `*Delivery Charges:* ₹${snap.deliveryCharge === 0 ? "0 (FREE)" : snap.deliveryCharge}`,
     );
-    lines.push(`*Total Amount:* ₹${grandTotal}`);
+    lines.push(`*Total Amount:* ₹${snap.grandTotal}`);
     lines.push("");
     lines.push("*Delivery Address:*");
     lines.push(
-      `${address.addressType}: ${address.flat}, Floor ${address.floor || "—"}`,
+      `${snap.address.addressType}: ${snap.address.flat}, Floor ${snap.address.floor || "—"}`,
     );
     lines.push(
-      `${address.area}${address.landmark ? `, Near ${address.landmark}` : ""}`,
+      `${snap.address.area}${snap.address.landmark ? `, Near ${snap.address.landmark}` : ""}`,
     );
-    lines.push(`Name: ${address.name}`);
-    lines.push(`Phone: ${address.phone}`);
+    lines.push(`Name: ${snap.address.name}`);
+    lines.push(`Phone: ${snap.address.phone}`);
     lines.push("");
     lines.push(
-      `*Payment:* ${paymentMethod === "upi" ? `UPI (${upiId || "paid"})` : "Cash on Delivery"}`,
+      `*Payment:* ${snap.paymentMethod === "upi" ? `UPI (${snap.upiId || "paid"})` : "Cash on Delivery"}`,
     );
     return encodeURIComponent(lines.join("\n"));
   };
@@ -124,7 +117,7 @@ export default function OrderSuccess() {
         <div className="bg-secondary rounded-2xl p-6 text-left mb-8">
           <h3 className="font-extrabold mb-4">Order Summary</h3>
           <div className="space-y-2 text-sm">
-            {items.map((item) => (
+            {orderSnapshot.items.map((item) => (
               <div key={item.cartKey} className="flex justify-between">
                 <span className="text-muted-foreground">
                   {item.productName} ({item.variant}) · {item.size} ×{" "}
@@ -138,21 +131,23 @@ export default function OrderSuccess() {
             <div className="border-t border-border pt-2 flex justify-between">
               <span className="text-muted-foreground">Delivery</span>
               <span
-                className={`font-semibold ${deliveryCharge === 0 ? "text-green-600" : ""}`}
+                className={`font-semibold ${orderSnapshot.deliveryCharge === 0 ? "text-green-600" : ""}`}
               >
-                {deliveryCharge === 0 ? "FREE" : `₹${deliveryCharge}`}
+                {orderSnapshot.deliveryCharge === 0
+                  ? "FREE"
+                  : `₹${orderSnapshot.deliveryCharge}`}
               </span>
             </div>
             <div className="flex justify-between font-extrabold text-base">
               <span>Total</span>
-              <span>₹{grandTotal}</span>
+              <span>₹{orderSnapshot.grandTotal}</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href={`https://wa.me/919549958286?text=${buildWhatsAppMessage()}`}
+            href={`https://wa.me/919549956286?text=${buildWhatsAppMessage()}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-4 rounded-xl transition-colors text-lg"

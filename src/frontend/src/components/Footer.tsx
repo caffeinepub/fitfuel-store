@@ -55,6 +55,14 @@ export default function Footer() {
                 Cart
               </a>
             </li>
+            <li>
+              <a
+                href="/profile"
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                My Profile
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -67,10 +75,10 @@ export default function Footer() {
             <li className="flex items-center gap-2 text-sm text-white/70">
               <Phone className="w-4 h-4 text-[#FF6B00]" />
               <a
-                href="tel:+919549958286"
+                href="tel:+919549956286"
                 className="hover:text-white transition-colors"
               >
-                +91 95499 58286
+                +91 95499 56286
               </a>
             </li>
             <li className="flex items-center gap-2 text-sm text-white/70">
@@ -87,7 +95,7 @@ export default function Footer() {
             <li className="flex items-center gap-2 text-sm text-white/70">
               <MessageCircle className="w-4 h-4 text-[#FF6B00]" />
               <a
-                href="https://wa.me/919549958286"
+                href="https://wa.me/919549956286"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition-colors"

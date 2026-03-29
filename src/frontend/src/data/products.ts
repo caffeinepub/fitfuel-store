@@ -21,6 +21,12 @@ export interface Product {
   sizes: ProductSize[];
 }
 
+// ─── Real Pintola CDN Images (cdn.shopify.com – publicly accessible, access-control-allow-origin: *) ─
+// Source: pintola.in (Shopify store: pintola-online.myshopify.com)
+
+export const FALLBACK_IMAGE =
+  "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-11_d446c524-4dc6-4543-ae82-d3fdfe7428e2.jpg?v=1751603962";
+
 // ─── Products ─────────────────────────────────────────────────────────────────
 
 export const products: Product[] = [
@@ -32,12 +38,16 @@ export const products: Product[] = [
       "Packed with 20g protein per serving. Made with whole grain oats, perfect for post-workout recovery. No added sugar, naturally gluten-free, FSSAI approved.",
     variants: [
       {
-        label: "Caffe Mocha",
-        image: "https://www.pintola.in/cdn/shop/files/HPoats-caffe-mocha.jpg",
+        label: "Dark Chocolate",
+        // Pintola High Protein Dark Chocolate Oats – 400g pack
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-11_d446c524-4dc6-4543-ae82-d3fdfe7428e2.jpg?v=1751603962",
       },
       {
-        label: "Dark Chocolate",
-        image: "https://www.pintola.in/cdn/shop/files/HPoats-dark-choco.jpg",
+        label: "Caffe Mocha",
+        // Pintola High Protein Dark Chocolate Oats – alternate pack shot
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/02_5.jpg?v=1751603962",
       },
     ],
     sizes: [
@@ -50,16 +60,19 @@ export const products: Product[] = [
     name: "Pintola High Protein Muesli",
     category: "Muesli",
     description:
-      "High protein muesli with real fruits & nuts. 18g protein per serving. Great for a power-packed breakfast. No artificial additives, naturally wholesome.",
+      "High protein muesli with real fruits, nuts & cranberry. 18g protein per serving. Great for a power-packed breakfast. No artificial additives, naturally wholesome.",
     variants: [
       {
-        label: "Fruits & Nuts",
+        label: "Dark Choc & Cranberry",
+        // Pintola High Protein Dark Chocolate & Cranberry Muesli – 400g
         image:
-          "https://www.pintola.in/cdn/shop/files/HP-Muesli-FruitsNNuts.jpg",
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-400g_036d38df-2958-4daa-9955-bb13c39e1f46.jpg?v=1745572996",
       },
       {
-        label: "Cranberry",
-        image: "https://www.pintola.in/cdn/shop/files/HP-Muesli-Cranberry.jpg",
+        label: "1kg Pack",
+        // Pintola High Protein Dark Chocolate & Cranberry Muesli – 1kg
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-1kg_50458ff8-eb03-4a32-8bd4-5616a2d797fb.jpg?v=1745572996",
       },
     ],
     sizes: [
@@ -76,11 +89,15 @@ export const products: Product[] = [
     variants: [
       {
         label: "Creamy",
-        image: "https://www.pintola.in/cdn/shop/files/HP-PB-Creamy.jpg",
+        // Pintola High Protein All Natural Unsweetened – Creamy 510g
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/High_Protein_Unsweetened_Creamy_510gm_600x600_3a0184fa-3ada-440e-b24b-0172023c4929.jpg?v=1732019345",
       },
       {
         label: "Crunchy",
-        image: "https://www.pintola.in/cdn/shop/files/HP-PB-Crunchy.jpg",
+        // Pintola High Protein All Natural Unsweetened – Crunchy 510g
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/High_Protein_Unsweetened_Crunchy_510gm_600x600_c2c7682f-fdb6-4686-90a6-7e7bd3bf7129.jpg?v=1742189095",
       },
     ],
     sizes: [
@@ -96,8 +113,16 @@ export const products: Product[] = [
       "Engineered for peak performance. Loaded with BCAAs, protein, and healthy fats. Your pre-workout fuel. No palm oil, no trans fat, no artificial preservatives.",
     variants: [
       {
-        label: "Original",
-        image: "https://www.pintola.in/cdn/shop/files/Performance-PB.jpg",
+        label: "Creamy",
+        // Pintola American Recipe Performance Peanut Butter – Creamy 1kg
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/American_Recipe_Performance_Creamy_1kg_600x600_50a65ca3-0f87-43db-a7b9-69e7e367d20d.jpg?v=1742190896",
+      },
+      {
+        label: "Crunchy",
+        // Pintola American Recipe Performance Peanut Butter – Crunchy 1kg
+        image:
+          "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/American_Recipe_Performance_Crunchy_1kg_600x600_5fee4378-78a1-41e3-b966-f3da43a940cd.jpg?v=1742190896",
       },
     ],
     sizes: [{ label: "1kg", mrp: 575, price: 450, discountPct: 22 }],

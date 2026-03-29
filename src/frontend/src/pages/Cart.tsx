@@ -3,6 +3,9 @@ import { Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCart } from "../context/CartContext";
 
+const FALLBACK_IMG =
+  "https://cdn.shopify.com/s/files/1/0538/2137/4655/files/01-11_d446c524-4dc6-4543-ae82-d3fdfe7428e2.jpg?v=1751603962";
+
 export default function Cart() {
   const {
     items,
@@ -81,6 +84,9 @@ export default function Cart() {
                   src={item.image}
                   alt={item.productName}
                   className="w-20 h-20 object-contain bg-gray-50 rounded-lg flex-shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_IMG;
+                  }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm line-clamp-2">

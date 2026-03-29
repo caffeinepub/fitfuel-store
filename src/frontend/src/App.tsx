@@ -10,8 +10,10 @@ import {
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import SupportChatbot from "./components/SupportChatbot";
 import { CartProvider } from "./context/CartContext";
 import { CheckoutProvider } from "./context/CheckoutContext";
+import Admin from "./pages/Admin";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Home from "./pages/Home";
@@ -19,6 +21,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import Payment from "./pages/Payment";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +34,7 @@ const rootRoute = createRootRoute({
       </main>
       <Footer />
       <FloatingWhatsApp />
+      <SupportChatbot />
       <Toaster richColors position="top-center" />
     </div>
   ),
@@ -78,6 +82,18 @@ const orderSuccessRoute = createRoute({
   component: OrderSuccess,
 });
 
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile",
+  component: Profile,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: Admin,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   productsRoute,
@@ -86,6 +102,8 @@ const routeTree = rootRoute.addChildren([
   checkoutRoute,
   paymentRoute,
   orderSuccessRoute,
+  profileRoute,
+  adminRoute,
 ]);
 
 const router = createRouter({ routeTree });
